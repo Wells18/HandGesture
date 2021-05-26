@@ -1,8 +1,8 @@
 # ########################################################################
 # handgesture.py
-# version 0.1
+# version 0.2
 # Wells
-# May 24th 2021
+# May 25th 2021
 # ########################################################################
 
 import math
@@ -33,8 +33,8 @@ class Finger:
         :param x of points:
         :param y of points:
         """
-        self.x = X
-        self.y = Y
+        self.X = X
+        self.Y = Y
 
 def Handset(HandAry):
     accNo = HandAry.RHAccNo[0]                          # first person right hand
@@ -50,8 +50,8 @@ def Handset(HandAry):
 class HandGesture:
     def __init__(self, accNo, X, Y):
         self.accNo = accNo
-        self.x = X
-        self.y = Y
+        self.X = X
+        self.Y = Y
         self.joint = Point(X[0], Y[0])
         self.thumb        = Finger(X[1:5], Y[1:5])
         self.forefinger   = Finger(X[5:9],   Y[5:9])
@@ -65,10 +65,10 @@ class HandGesture:
         self.littlefingerTip = Point(X[20], Y[20])
 
     def distance(self, point1, point2):
-        distance = math.sqrt((point1.x - point2.x)^2 + (point1.y - point2.y)^2)
+        distance = math.sqrt((point1.X - point2.X)**2 + (point1.Y - point2.Y)**2)
         return distance
 
-    def GetAngle(line1, line2):
+    def GetAngle(self,line1, line2):
         """
         function caculating angle between two lines
         :param line1:
@@ -121,10 +121,10 @@ class HandGesture:
         return dis    
 
     def isFingerExtented(self, finger):
-        knuckle1 = Point(finger.x[0], finger.y[0])
-        knuckle2 = Point(finger.x[0], finger.y[0])
-        knuckle3 = Point(finger.x[0], finger.y[0])
-        knuckle4 = Point(finger.x[0], finger.y[0])
+        knuckle1 = Point(finger.X[0], finger.Y[0])
+        knuckle2 = Point(finger.X[1], finger.Y[1])
+        knuckle3 = Point(finger.X[2], finger.Y[2])
+        knuckle4 = Point(finger.X[3], finger.Y[3])
 
         dis1 = self.distance(self.joint, knuckle1)
         dis2 = self.distance(self.joint, knuckle2)
@@ -137,28 +137,47 @@ class HandGesture:
             return False
 
     def isFingerBent(self, finger):
-        knuckle1 = Point(finger.x[0], finger.y[0])
-        knuckle2 = Point(finger.x[1], finger.y[1])
-        knuckle3 = Point(finger.x[2], finger.y[2])
-        knuckle4 = Point(finger.x[3], finger.y[3])
+        knuckle1 = Point(finger.X[0], finger.Y[0])
+        knuckle2 = Point(finger.X[1], finger.Y[1])
+        knuckle3 = Point(finger.X[2], finger.Y[2])
+        knuckle4 = Point(finger.X[3], finger.Y[3])
 
         dis1 = self.distance(self.joint, knuckle1)
         dis2 = self.distance(self.joint, knuckle2)
         dis3 = self.distance(self.joint, knuckle3)
         dis4 = self.distance(self.joint, knuckle4)
 
-        if (dis4<dis1 and dis3<dis2 and dis4<dis3):
+        # if (dis4<dis1 and dis3<dis2 and dis4<dis3):
+        # if (dis3<dis2 and dis4<dis3):
+        if (dis3<dis2):
+            return True
+        else:
+            return False
+
+    def isThumbBent(self,finger):
+        knuckle1 = Point(self.X[17], self.Y[17])      #little finger root        
+        knuckle3 = Point(finger.X[2], finger.Y[2])
+        knuckle4 = Point(finger.X[3], finger.Y[3])
+
+        dis1 = self.distance(knuckle1, knuckle3)
+        dis2 = self.distance(knuckle1, knuckle4)
+        dis3 = self.distance(self.joint, knuckle3)
+        dis4 = self.distance(self.joint, knuckle4)
+
+        # if (dis4<dis1 and dis3<dis2 and dis4<dis3):
+        # if (dis3<dis2 and dis4<dis3):
+        if (dis4<dis3 or dis1 > dis2):
             return True
         else:
             return False
 
     def angleOfFingers(self, finger1, finger2):
         # points of finger1
-        point1 = Point(finger1.x[0], finger1.y[0])
-        point2 = Point(finger1.x[3], finger1.y[3])
+        point1 = Point(finger1.X[0], finger1.Y[0])
+        point2 = Point(finger1.X[3], finger1.Y[3])
         # points of finger2
-        point3 = Point(finger2.x[0], finger2.y[0])
-        point4 = Point(finger2.x[3], finger2.y[3])
+        point3 = Point(finger2.X[0], finger2.Y[0])
+        point4 = Point(finger2.X[3], finger2.Y[3])
         # lines of fingers
         line1 = Line(point1, point2)
         line2 = Line(point3, point4)
@@ -168,8 +187,8 @@ class HandGesture:
         return angle
 
     def isFingerGun(self):
-        L1 = Line(Point(self.x[1], self.y[1]), Point(self.x[4], self.y[4]))
-        L2 = Line(Point(self.x[5], self.y[5]), Point(self.x[8], self.y[8]))
+        L1 = Line(Point(self.X[1], self.Y[1]), Point(self.X[4], self.Y[4]))
+        L2 = Line(Point(self.X[5], self.Y[5]), Point(self.X[8], self.Y[8]))
 
         angle = self.GetAngle(L1, L2)                                    # Angle between thumb and index finger
 
@@ -179,10 +198,13 @@ class HandGesture:
         h4 = self.isFingerExtented(self.forefinger)                      # whether finger extented or not                        
         h5 = self.isFingerExtented(self.thumb)      
         h6 = angle > 20                                                  # whether thumb detach from forfinger                  
+        print(h1, h2, h3, h4, h5, h6)
 
-        if h1 and h2 and h3 and h4 and h5 and h6:
+        if (h1 and h2 and h3 and h4 and h5 and h6):
+            print("*********************True")
             return True
         else:
+            print("*********************False")
             return False
 
     def isCloseHand(self):
@@ -190,8 +212,8 @@ class HandGesture:
         h2 = self.isFingerBent(self.ringfinger)
         h3 = self.isFingerBent(self.middlefinger)
         h4 = self.isFingerBent(self.forefinger)                       
-        h5 = self.isFingerBent(self.thumb)                      
-
+        h5 = self.isThumbBent(self.thumb)                      
+        
         if h1 and h2 and h3 and h4 and h5:
             return True
         else:
@@ -204,23 +226,24 @@ class HandGesture:
         h4 = self.isFingerExtented(self.forefinger)                       
         h5 = self.isFingerExtented(self.thumb)                      
 
+
         if h1 and h2 and h3 and h4 and h5:
             return True
         else:
             return False
 
-    def isOkPoseHand(self):
-        L1 = Line(Point(self.x[9], self.y[9]), Point(self.x[13], self.y[13]))
-        L2 = Line(Point(self.x[5], self.y[5]), Point(self.x[8], self.y[8]))
+    def isScissorPoseHand(self):
+        L1 = Line(Point(self.X[9], self.Y[9]), Point(self.X[13], self.Y[13]))
+        L2 = Line(Point(self.X[5], self.Y[5]), Point(self.X[8], self.Y[8]))
 
         angle = self.GetAngle(L1, L2)                                    # Angle between thumb and index finger
         h1 = self.isFingerBent(self.littlefinger)                        # whether finger bent or not 
         h2 = self.isFingerBent(self.ringfinger)
         h3 = self.isFingerExtented(self.middlefinger)                    # whether finger extented or not
         h4 = self.isFingerExtented(self.forefinger)                       
-        h5 = self.isFingerBent(self.thumb)
+        h5 = self.isThumbBent(self.thumb)
         h6 = angle > 10                                                  # whether thumb detach from forfinger                      
-
+        
         if h1 and h2 and h3 and h4 and h5 and h6:
             return True
         else:
@@ -238,8 +261,23 @@ class HandGesture:
         else:
             return False
 
-    def isScissorPoseHand(self):
-        return self.isOkPoseHand(self)
+    def isOkPoseHand(self):
+        h1 = self.isFingerExtented(self.littlefinger)                    # whether finger extented or not 
+        h2 = self.isFingerExtented(self.ringfinger)
+        h3 = self.isFingerExtented(self.middlefinger)
+
+        pointa1 = self.thumbTip
+        pointa2 = Point(self.thumb.X[2], self.thumb.Y[2])
+        pointb1 = self.forefingerTip
+        pointb2 = Point(self.forefinger.X[2], self.forefinger.Y[2])
+        dis1 = self.distance(pointa1, pointb1)
+        dis2 = self.distance(pointa2, pointb2)
+        h4 = dis1 < dis2
+
+        if h1 and h2 and h3 and h4:
+            return True
+        else:
+            return False 
 
     def isStonePoseHand(self):
         return self.isCloseHand(self)
